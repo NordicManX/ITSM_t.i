@@ -6,7 +6,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
 export async function login(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
@@ -20,5 +21,5 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/dashboard"); // Redireciona para o painel principal após o login
+  redirect("/dashboard");
 }
