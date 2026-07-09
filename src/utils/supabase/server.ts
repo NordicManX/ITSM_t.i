@@ -15,17 +15,12 @@ export function createClient() {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Ignorado de forma segura: chamado em um Server Component que não pode definir cookies.
-            // O Middleware cuidará da atualização da sessão.
-          }
+          } catch (error) {}
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: "", ...options });
-          } catch (error) {
-            // Ignorado de forma segura.
-          }
+          } catch (error) {}
         },
       },
     },
