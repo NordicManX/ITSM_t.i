@@ -7,8 +7,8 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-900">
-      {/* A nossa barra lateral fixa */}
+    <div className="flex h-screen flex-col overflow-hidden bg-gray-900 md:flex-row">
+      {/* A nossa barra lateral fixa (que agora vira header no mobile) */}
       <Sidebar />
       
       {/* A área onde o conteúdo de cada página vai renderizar */}

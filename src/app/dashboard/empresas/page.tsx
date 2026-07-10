@@ -16,7 +16,7 @@ export default async function EmpresasPage() {
       <CompanyForm />
 
       {/* Tabela de Clientes */}
-      <div className="rounded-lg border border-gray-800 bg-gray-900 shadow-sm overflow-hidden">
+      <div className="rounded-lg border border-gray-800 bg-gray-900 shadow-sm overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-800">
           <thead className="bg-gray-950/50">
             <tr>

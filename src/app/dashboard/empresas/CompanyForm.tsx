@@ -43,7 +43,7 @@ export function CompanyForm() {
   return (
     <div className="mb-10 rounded-lg border border-gray-800 bg-gray-900 p-6 shadow-sm">
       <h2 className="mb-4 text-xl font-semibold text-white">Nova Empresa</h2>
-      <form id="company-form" action={handleSubmit} className="flex gap-4 items-end">
+     <form id="company-form" action={handleSubmit} className="flex flex-col gap-4 md:flex-row md:items-end">
         <div className="flex-1">
           <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-300">
             Razão Social / Nome Fantasia
@@ -57,7 +57,7 @@ export function CompanyForm() {
             className="w-full rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
-        <div className="w-1/3">
+        <div className="w-full md:w-1/3">
           <label htmlFor="cnpj" className="mb-1 block text-sm font-medium text-gray-300">
             CNPJ (Opcional)
           </label>
@@ -73,7 +73,7 @@ export function CompanyForm() {
         </div>
         <button
           type="submit"
-          className="rounded-md bg-blue-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+          className="w-full rounded-md bg-blue-600 px-6 py-2 font-semibold text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 md:w-auto"
         >
           Cadastrar
         </button>

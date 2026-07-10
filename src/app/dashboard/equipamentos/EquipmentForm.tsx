@@ -81,7 +81,8 @@ export function EquipmentForm({
         </div>
       ) : (
         <form action={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex gap-4">
+          {/* Primeira linha: Coluna no celular, Linha no desktop */}
+          <div className="flex flex-col gap-4 md:flex-row">
             <div className="flex-1">
               <label htmlFor="company_id" className="mb-1 block text-sm font-medium text-gray-300">Cliente (Empresa)</label>
               <select
@@ -99,7 +100,7 @@ export function EquipmentForm({
               </select>
             </div>
 
-            <div className="w-1/4">
+            <div className="w-full md:w-1/4">
               <label htmlFor="type" className="mb-1 block text-sm font-medium text-gray-300">Tipo</label>
               <select
                 id="type"
@@ -114,7 +115,7 @@ export function EquipmentForm({
               </select>
             </div>
 
-            <div className="w-1/4">
+            <div className="w-full md:w-1/4">
               <label htmlFor="identification_number" className="mb-1 block text-sm font-medium text-gray-300">Numeração / ID</label>
               <input
                 type="text"
@@ -128,7 +129,8 @@ export function EquipmentForm({
             </div>
           </div>
 
-          <div className="flex items-end gap-4">
+          {/* Segunda linha: Coluna no celular, Linha no desktop */}
+          <div className="flex flex-col gap-4 md:flex-row md:items-end">
             <div className="flex-1">
               <label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-300">Descrição (Opcional)</label>
               <input
@@ -140,9 +142,10 @@ export function EquipmentForm({
                 className="w-full rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
+            {/* O botão também ocupa 100% no mobile para facilitar o clique com o dedo */}
             <button
               type="submit"
-              className={`rounded-md px-6 py-2 font-semibold text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 ${
+              className={`w-full rounded-md px-6 py-2 font-semibold text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 md:w-auto ${
                 isEditing ? 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500' : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
               }`}
             >
