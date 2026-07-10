@@ -36,7 +36,7 @@ export function TicketCard({ ticket }: { ticket: any }) {
             {priorityNames[ticket.priority]}
           </span>
           <div className="flex items-center gap-3">
-            {/* NOVO: Botão de Editar */}
+            {/* Botão de Editar */}
             <Link 
               href={`/dashboard/chamados?edit=${ticket.id}`} 
               title="Editar Chamado" 
@@ -56,7 +56,10 @@ export function TicketCard({ ticket }: { ticket: any }) {
         </div>
 
         <div>
-          <h4 className="font-bold text-white">{ticket.title}</h4>
+          {/* AQUI ESTÁ O AJUSTE: O Título agora é um link clicável */}
+          <Link href={`/dashboard/chamados/${ticket.id}`} className="hover:underline">
+            <h4 className="font-bold text-blue-400">{ticket.title}</h4>
+          </Link>
           <p className="mt-1 text-xs text-gray-400 line-clamp-2">{ticket.description}</p>
         </div>
 

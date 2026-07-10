@@ -118,3 +118,57 @@ export async function updateTicket(id: string, formData: FormData) {
 
   revalidatePath("/dashboard/chamados");
 }
+
+// src/app/dashboard/chamados/actions.ts (Adicione no final)
+
+// Busca um chamado específico pelo ID
+export async function getTicketById(id: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tickets")
+    .select(
+      `
+      *,
+      companies ( name ),
+      equipments ( identification_number, type )
+    `,
+    )
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Erro ao buscar chamado:", error);
+    return null;
+  }
+  return data;
+}
+
+// Busca a linha do tempo (comentários) do chamado
+export async function getTicketComments(ticketId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ticket_comments")
+    .select("*")
+    .eq("ticket_id", ticketId)
+    .order("created_at", { ascending: true }); // Do mais antigo para o mais novo
+
+  if (error) return [];
+  return data;
+}
+
+// Salva um novo comentário/atualização no histórico
+export async function addTicketComment(ticketId: string, formData: FormData) {
+  const supabase = await createClient();
+  const content = formData.get("content") as string;
+
+  const { error } = await supabase
+    .from("ticket_comments")
+    .insert([{ ticket_id: ticketId, content }]);
+
+  if (error) {
+    return { error: "Não foi possível salvar o comentário." };
+  }
+
+  // Atualiza a tela de detalhes instantaneamente
+  revalidatePath(`/dashboard/chamados/${ticketId}`);
+}
