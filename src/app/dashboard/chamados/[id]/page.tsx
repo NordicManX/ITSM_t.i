@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Clock, Building, Monitor } from 'lucide-react'
 import { CommentForm } from './CommentForm'
+import { ImagePreview } from './ImagePreview'
 
 export default async function DetalhesChamadoPage({
   params,
@@ -92,9 +93,24 @@ export default async function DetalhesChamadoPage({
                         <span className="text-xs text-gray-500 mb-1">
                           {new Date(comment.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                         </span>
-                        <div className="rounded-lg bg-gray-800 p-3 text-sm text-gray-200">
-                          {comment.content}
-                        </div>
+                       <div className="rounded-lg bg-gray-800 p-3 text-sm text-gray-200 shadow-sm border border-gray-700">
+                          <p className="whitespace-pre-wrap">{comment.content}</p>
+                          
+                          {/* Renderiza Anexos se existirem */}
+                          {comment.file_url && (
+                            <div className="mt-2">
+                              {comment.file_type?.startsWith('image/') ? (
+                                <ImagePreview src={comment.file_url} alt={comment.file_name || 'Evidência anexada'} />
+                              ) : comment.file_type?.startsWith('video/') ? (
+                                <video src={comment.file_url} controls className="mt-3 max-h-64 w-full rounded-md border border-gray-700 bg-gray-900 object-contain" />
+                              ) : (
+                                <a href={comment.file_url} target="_blank" rel="noreferrer" className="mt-3 inline-block rounded-md border border-gray-700 bg-gray-900 p-3 text-blue-400 hover:underline">
+                                  📎 Ver arquivo anexado ({comment.file_name})
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div> 
                       </div>
                     </div>
                   ))}

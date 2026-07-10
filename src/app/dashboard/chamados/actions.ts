@@ -156,19 +156,56 @@ export async function getTicketComments(ticketId: string) {
   return data;
 }
 
-// Salva um novo comentário/atualização no histórico
 export async function addTicketComment(ticketId: string, formData: FormData) {
   const supabase = await createClient();
   const content = formData.get("content") as string;
+  const file = formData.get("file") as File | null;
 
-  const { error } = await supabase
-    .from("ticket_comments")
-    .insert([{ ticket_id: ticketId, content }]);
+  let file_url = null;
+  let file_type = null;
+  let file_name = null;
+
+  // Se veio um arquivo real do formulário
+  if (file && file.size > 0 && file.name !== "undefined") {
+    const fileExt = file.name.split(".").pop();
+    const uniqueFileName = `${ticketId}-${Date.now()}.${fileExt}`;
+
+    // Faz o upload direto pro Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("evidencias")
+      .upload(uniqueFileName, file);
+
+    if (uploadError) {
+      console.error("Erro no upload:", uploadError);
+      return { error: "Falha ao fazer upload da evidência." };
+    }
+
+    // Pega o link público da imagem/vídeo
+    const { data: publicUrlData } = supabase.storage
+      .from("evidencias")
+      .getPublicUrl(uniqueFileName);
+
+    file_url = publicUrlData.publicUrl;
+    file_type = file.type;
+    file_name = file.name;
+  }
+
+  // Salva o comentário com o texto e o link do anexo (se houver)
+  const { error } = await supabase.from("ticket_comments").insert([
+    {
+      ticket_id: ticketId,
+      content,
+      file_url,
+      file_type,
+      file_name,
+    },
+  ]);
 
   if (error) {
+    console.error("Erro ao salvar comentário:", error);
     return { error: "Não foi possível salvar o comentário." };
   }
 
-  // Atualiza a tela de detalhes instantaneamente
+  // AQUI FOI CORRIGIDO: Removi o import que estava no lugar errado
   revalidatePath(`/dashboard/chamados/${ticketId}`);
 }
