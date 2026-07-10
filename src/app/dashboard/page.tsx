@@ -3,22 +3,22 @@ import Link from 'next/link'
 import { getCompanies } from './empresas/actions'
 import { getEquipments } from './equipamentos/actions'
 import { getTickets } from './chamados/actions'
-import { Building2, Monitor, AlertCircle, CheckCircle2, Clock, Activity, AlertTriangle } from 'lucide-react'
+import { Building2, Monitor, AlertCircle, Clock, Activity, AlertTriangle } from 'lucide-react'
 
 export default async function DashboardPage() {
-  // Busca todos os dados em paralelo para ser mais rápido
+  // A busca abaixo agora é "segura por padrão" graças ao RLS do Supabase.
+  // Se o usuário logado for CLIENT, ele só verá os dados da sua empresa.
   const [companies, equipments, tickets] = await Promise.all([
     getCompanies(),
     getEquipments(),
     getTickets()
   ])
 
-  // Calcula as métricas
+  // Cálculos baseados nos dados filtrados pelo RLS
   const openTickets = tickets.filter(t => t.status === 'OPEN')
   const inProgressTickets = tickets.filter(t => t.status === 'IN_PROGRESS')
   const resolvedTickets = tickets.filter(t => t.status === 'RESOLVED')
   
-  // Pega apenas os chamados Urgentes que ainda não foram concluídos
   const urgentTickets = tickets.filter(t => t.priority === 'URGENT' && t.status !== 'RESOLVED')
 
   return (
@@ -28,10 +28,8 @@ export default async function DashboardPage() {
         <p className="mt-2 text-sm text-gray-400 md:text-base">Acompanhe as métricas e a situação do seu NordicDesk.</p>
       </div>
 
-      {/* Grid de Cartões de Métricas (AGORA CLICÁVEIS) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         
-        {/* Cartão de Empresas -> Leva para /empresas */}
         <Link href="/dashboard/empresas" className="group flex items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-sm transition-all hover:border-indigo-500/50 hover:bg-gray-800 cursor-pointer">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-900/30 transition-colors group-hover:bg-indigo-900/50">
             <Building2 className="h-6 w-6 text-indigo-400" />
@@ -42,7 +40,6 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        {/* Cartão de Equipamentos -> Leva para /equipamentos */}
         <Link href="/dashboard/equipamentos" className="group flex items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-sm transition-all hover:border-purple-500/50 hover:bg-gray-800 cursor-pointer">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-900/30 transition-colors group-hover:bg-purple-900/50">
             <Monitor className="h-6 w-6 text-purple-400" />
@@ -53,7 +50,6 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        {/* Cartão de Chamados Abertos -> Leva para /chamados */}
         <Link href="/dashboard/chamados" className="group flex items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-sm transition-all hover:border-red-500/50 hover:bg-gray-800 cursor-pointer">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-red-900/30 transition-colors group-hover:bg-red-900/50">
             <AlertCircle className="h-6 w-6 text-red-400" />
@@ -64,7 +60,6 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        {/* Cartão de Em Andamento -> Leva para /chamados */}
         <Link href="/dashboard/chamados" className="group flex items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-sm transition-all hover:border-blue-500/50 hover:bg-gray-800 cursor-pointer">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-900/30 transition-colors group-hover:bg-blue-900/50">
             <Clock className="h-6 w-6 text-blue-400" />
@@ -78,8 +73,6 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        
-        {/* Sessão de Chamados Urgentes */}
         <div className="lg:col-span-2">
           <div className="flex h-full flex-col rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-sm">
             <div className="mb-6 flex items-center justify-between">
@@ -114,28 +107,23 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Resumo Rápido */}
         <div className="flex flex-col gap-4">
           <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-sm">
             <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
               <Activity className="h-5 w-5 text-green-400" />
               Status de Resolução
             </h3>
-            
             <div className="flex items-center justify-center py-6">
               <div className="text-center">
                 <span className="block text-4xl font-black text-green-500">{resolvedTickets.length}</span>
                 <span className="mt-2 block text-sm text-gray-400">Chamados Concluídos</span>
               </div>
             </div>
-            
             <div className="mt-4 border-t border-gray-800 pt-4">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400">Taxa de sucesso</span>
                 <span className="font-medium text-white">
-                  {tickets.length > 0 
-                    ? Math.round((resolvedTickets.length / tickets.length) * 100) 
-                    : 0}%
+                  {tickets.length > 0 ? Math.round((resolvedTickets.length / tickets.length) * 100) : 0}%
                 </span>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-800">
@@ -147,7 +135,6 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   )

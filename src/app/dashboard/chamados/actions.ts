@@ -4,7 +4,8 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 
-// Busca todos os chamados com os dados da empresa e equipamento anexados
+// Busca todos os chamados.
+// Com o RLS ativo no banco, o Supabase filtra automaticamente os dados pelo company_id do usuário logado.
 export async function getTickets() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -53,7 +54,7 @@ export async function createTicket(formData: FormData) {
   revalidatePath("/dashboard/chamados");
 }
 
-// Atualiza apenas o status (Usaremos isso para mover os cards no Kanban)
+// Atualiza o status do chamado
 export async function updateTicketStatus(id: string, newStatus: string) {
   const supabase = await createClient();
 
@@ -73,31 +74,26 @@ export async function updateTicketStatus(id: string, newStatus: string) {
   revalidatePath("/dashboard/chamados");
 }
 
-// Exclui um chamado
+// Exclui um chamado com trava de segurança
 export async function deleteTicket(id: string) {
   const supabase = await createClient();
 
-  // 1. Busca o status atual antes de deletar
   const { data: ticket } = await supabase
     .from("tickets")
     .select("status")
     .eq("id", id)
     .single();
 
-  // 2. Se estiver resolvido, trava a operação
   if (ticket?.status === "RESOLVED") {
     return { error: "Não é possível excluir um chamado já concluído." };
   }
 
-  // 3. Procede com a exclusão
   const { error } = await supabase.from("tickets").delete().eq("id", id);
 
   if (!error) revalidatePath("/dashboard/chamados");
 }
 
-// src/app/dashboard/chamados/actions.ts (Adicione no final)
-
-// Atualiza os dados de um chamado existente
+// Atualiza dados de um chamado existente
 export async function updateTicket(id: string, formData: FormData) {
   const supabase = await createClient();
 
@@ -127,9 +123,7 @@ export async function updateTicket(id: string, formData: FormData) {
   revalidatePath("/dashboard/chamados");
 }
 
-// src/app/dashboard/chamados/actions.ts (Adicione no final)
-
-// Busca um chamado específico pelo ID
+// Busca um chamado específico
 export async function getTicketById(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -151,19 +145,20 @@ export async function getTicketById(id: string) {
   return data;
 }
 
-// Busca a linha do tempo (comentários) do chamado
+// Busca comentários da linha do tempo
 export async function getTicketComments(ticketId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ticket_comments")
     .select("*")
     .eq("ticket_id", ticketId)
-    .order("created_at", { ascending: true }); // Do mais antigo para o mais novo
+    .order("created_at", { ascending: true });
 
   if (error) return [];
   return data;
 }
 
+// Adiciona comentário com upload de evidência
 export async function addTicketComment(ticketId: string, formData: FormData) {
   const supabase = await createClient();
   const content = formData.get("content") as string;
@@ -173,13 +168,11 @@ export async function addTicketComment(ticketId: string, formData: FormData) {
   let file_type = null;
   let file_name = null;
 
-  // Se veio um arquivo real do formulário
   if (file && file.size > 0 && file.name !== "undefined") {
     const fileExt = file.name.split(".").pop();
     const uniqueFileName = `${ticketId}-${Date.now()}.${fileExt}`;
 
-    // Faz o upload direto pro Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from("evidencias")
       .upload(uniqueFileName, file);
 
@@ -188,7 +181,6 @@ export async function addTicketComment(ticketId: string, formData: FormData) {
       return { error: "Falha ao fazer upload da evidência." };
     }
 
-    // Pega o link público da imagem/vídeo
     const { data: publicUrlData } = supabase.storage
       .from("evidencias")
       .getPublicUrl(uniqueFileName);
@@ -198,7 +190,6 @@ export async function addTicketComment(ticketId: string, formData: FormData) {
     file_name = file.name;
   }
 
-  // Salva o comentário com o texto e o link do anexo (se houver)
   const { error } = await supabase.from("ticket_comments").insert([
     {
       ticket_id: ticketId,
@@ -214,6 +205,5 @@ export async function addTicketComment(ticketId: string, formData: FormData) {
     return { error: "Não foi possível salvar o comentário." };
   }
 
-  // AQUI FOI CORRIGIDO: Removi o import que estava no lugar errado
   revalidatePath(`/dashboard/chamados/${ticketId}`);
 }
