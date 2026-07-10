@@ -77,14 +77,22 @@ export async function updateTicketStatus(id: string, newStatus: string) {
 export async function deleteTicket(id: string) {
   const supabase = await createClient();
 
-  const { error } = await supabase.from("tickets").delete().eq("id", id);
+  // 1. Busca o status atual antes de deletar
+  const { data: ticket } = await supabase
+    .from("tickets")
+    .select("status")
+    .eq("id", id)
+    .single();
 
-  if (error) {
-    console.error("Erro ao excluir chamado:", error);
-    return { error: "Não foi possível excluir o chamado." };
+  // 2. Se estiver resolvido, trava a operação
+  if (ticket?.status === "RESOLVED") {
+    return { error: "Não é possível excluir um chamado já concluído." };
   }
 
-  revalidatePath("/dashboard/chamados");
+  // 3. Procede com a exclusão
+  const { error } = await supabase.from("tickets").delete().eq("id", id);
+
+  if (!error) revalidatePath("/dashboard/chamados");
 }
 
 // src/app/dashboard/chamados/actions.ts (Adicione no final)

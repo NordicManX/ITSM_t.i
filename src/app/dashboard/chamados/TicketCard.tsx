@@ -35,28 +35,31 @@ export function TicketCard({ ticket }: { ticket: any }) {
           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${priorityColors[ticket.priority]}`}>
             {priorityNames[ticket.priority]}
           </span>
+          
+          {/* AJUSTE: Botões de edição e exclusão somem se o chamado estiver concluído */}
           <div className="flex items-center gap-3">
-            {/* Botão de Editar */}
-            <Link 
-              href={`/dashboard/chamados?edit=${ticket.id}`} 
-              title="Editar Chamado" 
-              className="text-gray-500 transition-colors hover:text-blue-400"
-            >
-              <Pencil className="h-4 w-4" />
-            </Link>
-            {/* Botão de Excluir */}
-            <button 
-              onClick={() => setIsModalOpen(true)} 
-              title="Excluir Chamado" 
-              className="text-gray-500 transition-colors hover:text-red-400"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            {ticket.status !== 'RESOLVED' && (
+              <>
+                <Link 
+                  href={`/dashboard/chamados?edit=${ticket.id}`} 
+                  title="Editar Chamado" 
+                  className="text-gray-500 transition-colors hover:text-blue-400"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Link>
+                <button 
+                  onClick={() => setIsModalOpen(true)} 
+                  title="Excluir Chamado" 
+                  className="text-gray-500 transition-colors hover:text-red-400"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         <div>
-          {/* AQUI ESTÁ O AJUSTE: O Título agora é um link clicável */}
           <Link href={`/dashboard/chamados/${ticket.id}`} className="hover:underline">
             <h4 className="font-bold text-blue-400">{ticket.title}</h4>
           </Link>
