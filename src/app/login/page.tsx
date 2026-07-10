@@ -14,7 +14,7 @@ export default function LoginPage({
         {/* Bloco da Logo e Título */}
         <div className="mb-8 flex flex-col items-center text-center">
           <Image 
-            src="/Logo.png" // Certifique-se de que o arquivo esteja em public/logo.png
+            src="/Logo.png" 
             alt="Logo Nordic Tech" 
             width={80} 
             height={80} 
