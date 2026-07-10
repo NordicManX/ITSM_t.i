@@ -25,7 +25,7 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-gray-950 p-4 text-gray-100 md:p-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white md:text-3xl">Visão Geral</h1>
-        <p className="mt-2 text-sm text-gray-400 md:text-base">Acompanhe as métricas e a situação do seu Helpdesk.</p>
+        <p className="mt-2 text-sm text-gray-400 md:text-base">Acompanhe as métricas e a situação do seu NordicDesk.</p>
       </div>
 
       {/* Grid de Cartões de Métricas (AGORA CLICÁVEIS) */}
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
                 Fila de Urgências
               </h3>
               <Link href="/dashboard/chamados" className="text-sm font-medium text-blue-400 hover:text-blue-300 hover:underline">
-                Ver quadro Kanban &rarr;
+                Ver quadro NordicDesk &rarr;
               </Link>
             </div>
 
