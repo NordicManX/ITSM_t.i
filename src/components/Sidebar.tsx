@@ -7,7 +7,7 @@ export function Sidebar() {
     <aside className="flex h-screen w-64 flex-col border-r border-gray-800 bg-gray-950">
       {/* Cabeçalho da Sidebar */}
       <div className="flex h-16 items-center justify-center border-b border-gray-800">
-        <h2 className="text-xl font-bold text-white">Helpdesk TI</h2>
+        <h2 className="text-xl font-bold text-white">NordicDesk TI</h2>
       </div>
 
       {/* Navegação Principal */}
