@@ -3,18 +3,64 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Monitor, Server, Pencil, Trash2, AlertTriangle } from 'lucide-react'
+import { Monitor, Server, Pencil, Trash2, AlertTriangle, Copy, Check, Network, ExternalLink } from 'lucide-react'
 import { deleteEquipment } from './actions'
 
 export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, filterCompanyId?: string }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const handleDelete = async () => {
     setIsDeleting(true)
     await deleteEquipment(equipment.id)
     setIsModalOpen(false)
     setIsDeleting(false)
+  }
+
+  // Copiar ID para a área de transferência
+  const handleCopyAccess = () => {
+    if (equipment.remote_access_id) {
+      navigator.clipboard.writeText(equipment.remote_access_id)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  // A Mágica da Conexão Direta
+  const handleConnect = () => {
+    const type = equipment.remote_access_type
+    const id = equipment.remote_access_id
+
+    if (!id) return
+
+    if (type === 'ANYDESK') {
+      // Abre o AnyDesk passando o ID
+      window.open(`anydesk://${id}`, '_self')
+    } 
+    else if (type === 'TEAMVIEWER') {
+      // Abre o TeamViewer
+      window.open(`teamviewer10://control?device=${id}`, '_self')
+    } 
+    else if (type === 'RDP') {
+      // Gera um arquivo .rdp em tempo real e dispara o download
+      const rdpContent = `full address:s:${id}\nprompt for credentials:i:1\n`
+      const blob = new Blob([rdpContent], { type: 'application/x-rdp' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      // Nomeia o arquivo com o ID do equipamento para ficar organizado
+      a.download = `Conexao_${equipment.identification_number}.rdp`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } 
+    else {
+      // Se for "OTHER" (Outro), apenas copia o ID pois não sabemos o programa
+      handleCopyAccess()
+      alert('O ID foi copiado. Abra seu software de VPN/Conexão manualmente.')
+    }
   }
 
   return (
@@ -37,16 +83,50 @@ export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, 
             </div>
           </div>
           
-          <div className="mt-4 rounded bg-gray-950 p-3 border border-gray-800">
-            <span className="block text-xs text-gray-500 mb-1">Empresa vinculada:</span>
-            <span className="block text-sm font-medium text-gray-300 line-clamp-1">
-              {equipment.companies?.name}
-            </span>
+          <div className="mt-4 flex flex-col gap-2">
+            <div className="rounded bg-gray-950 p-3 border border-gray-800">
+              <span className="block text-xs text-gray-500 mb-1">Empresa vinculada:</span>
+              <span className="block text-sm font-medium text-gray-300 line-clamp-1">
+                {equipment.companies?.name}
+              </span>
+            </div>
+
+            {equipment.remote_access_id && (
+              <div className="rounded bg-indigo-950/20 p-3 border border-indigo-900/30 flex items-center justify-between group">
+                <div>
+                  <span className="flex items-center gap-1 text-[10px] uppercase font-semibold text-indigo-400/70 mb-1">
+                    <Network className="h-3 w-3" />
+                    {equipment.remote_access_type || 'ANYDESK'}
+                  </span>
+                  <span className="block text-sm font-mono text-indigo-300">
+                    {equipment.remote_access_id}
+                  </span>
+                </div>
+                
+                {/* Botões de Ação (Copiar e Conectar) */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handleCopyAccess}
+                    className="rounded-md p-2 text-indigo-400/50 hover:bg-indigo-900/50 hover:text-indigo-300 transition-colors"
+                    title="Copiar ID/IP"
+                  >
+                    {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                  
+                  <button
+                    onClick={handleConnect}
+                    className="flex items-center justify-center rounded-md bg-indigo-600 p-2 text-white hover:bg-indigo-500 transition-colors shadow-sm"
+                    title="Conectar Agora"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
         <div className="mt-5 flex items-center justify-between border-t border-gray-800 pt-4">
-          {/* Botão que agora abre o modal com segurança */}
           <button 
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-red-400"
@@ -63,7 +143,7 @@ export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, 
         </div>
       </div>
 
-      {/* Modal de Confirmação de Exclusão */}
+      {/* Modal de Confirmação de Exclusão (Mantido igual) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md transform rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl transition-all">

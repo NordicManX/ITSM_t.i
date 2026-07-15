@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 
 // Busca todos os chamados.
-// Com o RLS ativo no banco, o Supabase filtra automaticamente os dados pelo company_id do usuário logado.
 export async function getTickets() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -132,7 +131,7 @@ export async function getTicketById(id: string) {
       `
       *,
       companies ( name ),
-      equipments ( identification_number, type )
+      equipments ( identification_number, type, remote_access_id, remote_access_type )
     `,
     )
     .eq("id", id)
@@ -203,6 +202,102 @@ export async function addTicketComment(ticketId: string, formData: FormData) {
   if (error) {
     console.error("Erro ao salvar comentário:", error);
     return { error: "Não foi possível salvar o comentário." };
+  }
+
+  revalidatePath(`/dashboard/chamados/${ticketId}`);
+}
+
+// ============================================================================
+// NOVAS FUNÇÕES: GESTÃO DE SERVIÇOS E PEÇAS (TICKET ITEMS)
+// ============================================================================
+
+// Busca itens (serviços e peças) de um chamado específico
+export async function getTicketItems(ticketId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ticket_items")
+    .select("*")
+    .eq("ticket_id", ticketId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao buscar itens do chamado:", error);
+    return [];
+  }
+  return data;
+}
+
+// Inserir um novo item (Peça ou Serviço)
+export async function addTicketItem(formData: FormData) {
+  const supabase = await createClient();
+
+  const ticketId = formData.get("ticket_id") as string;
+  const description = formData.get("description") as string;
+  const type = formData.get("type") as "PRODUCT" | "SERVICE";
+  const quantity = parseInt(formData.get("quantity") as string) || 1;
+  const unitValue = parseFloat(formData.get("unit_value") as string) || 0.0;
+
+  const { error } = await supabase.from("ticket_items").insert([
+    {
+      ticket_id: ticketId,
+      description,
+      type,
+      quantity,
+      unit_value: unitValue,
+    },
+  ]);
+
+  if (error) {
+    console.error("Erro ao adicionar item:", error);
+    throw new Error("Não foi possível adicionar o item.");
+  }
+
+  revalidatePath(`/dashboard/chamados/${ticketId}`);
+}
+
+// Remover um item
+export async function deleteTicketItem(itemId: string, ticketId: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("ticket_items")
+    .delete()
+    .eq("id", itemId);
+
+  if (error) {
+    console.error("Erro ao deletar item:", error);
+    throw new Error("Não foi possível remover o item.");
+  }
+
+  revalidatePath(`/dashboard/chamados/${ticketId}`);
+}
+
+// Adicione esta função ao final do seu src/app/dashboard/chamados/actions.ts
+
+// Atualizar um item existente (Peça ou Serviço)
+export async function updateTicketItem(formData: FormData) {
+  const supabase = await createClient();
+
+  const itemId = formData.get("item_id") as string;
+  const ticketId = formData.get("ticket_id") as string;
+  const description = formData.get("description") as string;
+  const type = formData.get("type") as "PRODUCT" | "SERVICE";
+  const quantity = parseInt(formData.get("quantity") as string) || 1;
+  const unitValue = parseFloat(formData.get("unit_value") as string) || 0.0;
+
+  const { error } = await supabase
+    .from("ticket_items")
+    .update({
+      description,
+      type,
+      quantity,
+      unit_value: unitValue,
+    })
+    .eq("id", itemId);
+
+  if (error) {
+    console.error("Erro ao atualizar item:", error);
+    throw new Error("Não foi possível atualizar o item.");
   }
 
   revalidatePath(`/dashboard/chamados/${ticketId}`);

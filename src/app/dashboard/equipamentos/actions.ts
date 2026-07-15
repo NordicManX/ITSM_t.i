@@ -31,24 +31,32 @@ export async function getCompaniesList() {
 }
 
 // Cria um novo equipamento
+// Exemplo de como deve ficar a gravação na sua action de criação/edição:
+
 export async function createEquipment(formData: FormData) {
   const supabase = await createClient();
 
-  const company_id = formData.get("company_id") as string;
   const type = formData.get("type") as string;
   const identification_number = formData.get("identification_number") as string;
-  const description = formData.get("description") as string;
+  const company_id = formData.get("company_id") as string;
 
-  const { error } = await supabase
-    .from("equipments")
-    .insert([{ company_id, type, identification_number, description }]);
+  // Capturando os novos campos de acesso remoto
+  const remote_access_type = formData.get("remote_access_type") as string;
+  const remote_access_id = formData.get("remote_access_id") as string;
+
+  const { error } = await supabase.from("equipments").insert([
+    {
+      type,
+      identification_number,
+      company_id,
+      remote_access_type: remote_access_type || "ANYDESK",
+      remote_access_id: remote_access_id || null,
+    },
+  ]);
 
   if (error) {
-    console.error("Erro ao cadastrar equipamento:", error);
-    return {
-      error:
-        "Não foi possível cadastrar o equipamento. Verifique se a numeração já existe para esta empresa.",
-    };
+    console.error("Erro ao criar equipamento:", error);
+    return { error: "Não foi possível cadastrar o equipamento." };
   }
 
   revalidatePath("/dashboard/equipamentos");

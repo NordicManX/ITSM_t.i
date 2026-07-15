@@ -12,6 +12,8 @@ type Equipment = {
   type: string
   identification_number: string
   description: string | null
+  remote_access_type?: string
+  remote_access_id?: string
 }
 
 export function EquipmentForm({ 
@@ -29,6 +31,8 @@ export function EquipmentForm({
   const [type, setType] = useState('TERMINAL')
   const [identification, setIdentification] = useState('')
   const [description, setDescription] = useState('')
+  const [remoteAccessType, setRemoteAccessType] = useState('ANYDESK')
+  const [remoteAccessId, setRemoteAccessId] = useState('')
 
   // Sincroniza os dados do equipamento com os campos da tela
   useEffect(() => {
@@ -37,11 +41,15 @@ export function EquipmentForm({
       setType(equipmentToEdit.type)
       setIdentification(equipmentToEdit.identification_number)
       setDescription(equipmentToEdit.description || '')
+      setRemoteAccessType(equipmentToEdit.remote_access_type || 'ANYDESK')
+      setRemoteAccessId(equipmentToEdit.remote_access_id || '')
     } else {
       setCompanyId('')
       setType('TERMINAL')
       setIdentification('')
       setDescription('')
+      setRemoteAccessType('ANYDESK')
+      setRemoteAccessId('')
     }
   }, [equipmentToEdit])
 
@@ -55,6 +63,8 @@ export function EquipmentForm({
       setCompanyId('')
       setIdentification('')
       setDescription('')
+      setRemoteAccessType('ANYDESK')
+      setRemoteAccessId('')
     }
   }
 
@@ -69,7 +79,7 @@ export function EquipmentForm({
           {isEditing ? 'Editar Equipamento' : 'Novo Equipamento'}
         </h2>
         {isEditing && (
-          <button onClick={handleCancelEdit} className="text-sm font-medium text-gray-400 hover:text-white">
+          <button onClick={handleCancelEdit} className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
             Cancelar Edição
           </button>
         )}
@@ -80,8 +90,9 @@ export function EquipmentForm({
           Você precisa cadastrar uma empresa antes de adicionar equipamentos.
         </div>
       ) : (
-        <form action={handleSubmit} className="flex flex-col gap-4">
-          {/* Primeira linha: Coluna no celular, Linha no desktop */}
+        <form action={handleSubmit} className="flex flex-col gap-5">
+          
+          {/* PRIMEIRA LINHA: Empresa, Tipo, Numeração */}
           <div className="flex flex-col gap-4 md:flex-row">
             <div className="flex-1">
               <label htmlFor="company_id" className="mb-1 block text-sm font-medium text-gray-300">Cliente (Empresa)</label>
@@ -129,7 +140,39 @@ export function EquipmentForm({
             </div>
           </div>
 
-          {/* Segunda linha: Coluna no celular, Linha no desktop */}
+          {/* SEGUNDA LINHA: Acesso Remoto */}
+          <div className="flex flex-col gap-4 md:flex-row bg-gray-950/50 p-4 rounded-lg border border-gray-800/50">
+            <div className="w-full md:w-1/3">
+              <label htmlFor="remote_access_type" className="mb-1 block text-sm font-medium text-indigo-400">Tipo de Acesso Remoto</label>
+              <select
+                id="remote_access_type"
+                name="remote_access_type"
+                value={remoteAccessType}
+                onChange={(e) => setRemoteAccessType(e.target.value)}
+                className="w-full rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="ANYDESK">AnyDesk</option>
+                <option value="RDP">Área de Trabalho Remota (RDP)</option>
+                <option value="TEAMVIEWER">TeamViewer</option>
+                <option value="OTHER">Outro / VPN</option>
+              </select>
+            </div>
+
+            <div className="flex-1">
+              <label htmlFor="remote_access_id" className="mb-1 block text-sm font-medium text-indigo-400">ID / Endereço de Conexão</label>
+              <input
+                type="text"
+                id="remote_access_id"
+                name="remote_access_id"
+                value={remoteAccessId}
+                onChange={(e) => setRemoteAccessId(e.target.value)}
+                placeholder="Ex: 123 456 789 ou 192.168.1.50"
+                className="w-full rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* TERCEIRA LINHA: Descrição e Botão de Salvar */}
           <div className="flex flex-col gap-4 md:flex-row md:items-end">
             <div className="flex-1">
               <label htmlFor="description" className="mb-1 block text-sm font-medium text-gray-300">Descrição (Opcional)</label>
@@ -142,7 +185,7 @@ export function EquipmentForm({
                 className="w-full rounded-md border border-gray-700 bg-gray-800 px-4 py-2 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
-            {/* O botão também ocupa 100% no mobile para facilitar o clique com o dedo */}
+            
             <button
               type="submit"
               className={`w-full rounded-md px-6 py-2 font-semibold text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 md:w-auto ${
@@ -152,6 +195,7 @@ export function EquipmentForm({
               {isEditing ? 'Atualizar Equipamento' : 'Adicionar Equipamento'}
             </button>
           </div>
+          
         </form>
       )}
     </div>
