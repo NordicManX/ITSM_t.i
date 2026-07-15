@@ -101,7 +101,7 @@ export function TicketCard({ ticket }: { ticket: any }) {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">Excluir Chamado</h3>
-                <p className="text-sm text-gray-400">Esta ação não pode ser desfeita. O chamado será removido permanentemente do Kanban.</p>
+                <p className="text-sm text-gray-400">Esta ação não pode ser desfeita. O chamado será removido permanentemente do NordicDesk.</p>
               </div>
             </div>
             
