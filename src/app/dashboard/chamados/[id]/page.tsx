@@ -89,8 +89,8 @@ export default async function DetalhesChamadoPage({
                 </div>
               </div>
               {ticket.equipments && (
-  <EquipmentBadge equipment={ticket.equipments} />
-)}
+                <EquipmentBadge equipment={ticket.equipments} />
+              )}
             </div>
 
             <div className="mt-6 rounded-lg bg-gray-950 p-4 border border-gray-800">
@@ -99,7 +99,7 @@ export default async function DetalhesChamadoPage({
             </div>
           </div>
 
-          {/* 2. Serviços e Peças (MÓDULO ATUALIZADO) */}
+          {/* 2. Serviços e Peças */}
           <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-sm">
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
@@ -130,14 +130,14 @@ export default async function DetalhesChamadoPage({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-800">
-  {items.map((item) => (
-    <EditableRow 
-      key={item.id} 
-      item={item} 
-      ticketId={ticket.id} 
-    />
-  ))}
-</tbody>
+                    {items.map((item) => (
+                      <EditableRow 
+                        key={item.id} 
+                        item={item} 
+                        ticketId={ticket.id} 
+                      />
+                    ))}
+                  </tbody>
                 </table>
               </div>
             )}
@@ -276,12 +276,21 @@ export default async function DetalhesChamadoPage({
                   {comments.map((comment) => (
                     <div key={comment.id} className="relative">
                       {/* Bolinha da timeline */}
-                      <div className="absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-gray-900 bg-blue-500" />
+                      <div className="absolute -left-[27px] top-1.5 h-3 w-3 rounded-full border-2 border-gray-900 bg-indigo-500" />
                       <div className="flex flex-col">
-                        <span className="text-xs text-gray-500 mb-1">
-                          {new Date(comment.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                       <div className="rounded-lg bg-gray-800 p-3 text-sm text-gray-200 shadow-sm border border-gray-700">
+                        
+                        {/* CABEÇALHO DO HISTÓRICO COM O NOME E DATA */}
+                        <div className="text-xs text-gray-500 mb-1 flex items-center gap-1.5 flex-wrap">
+                          <span className="font-semibold text-indigo-400">
+                            {comment.profiles?.full_name || 'Sistema / Usuário'}
+                          </span>
+                          <span>•</span>
+                          <span>
+                            {new Date(comment.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        
+                        <div className="rounded-lg bg-gray-800 p-3 text-sm text-gray-200 shadow-sm border border-gray-700">
                           <p className="whitespace-pre-wrap">{comment.content}</p>
                           
                           {/* Renderiza Anexos se existirem */}

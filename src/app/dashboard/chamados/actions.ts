@@ -145,21 +145,39 @@ export async function getTicketById(id: string) {
 }
 
 // Busca comentários da linha do tempo
+// Busca comentários da linha do tempo COM O NOME DO USUÁRIO
+// src/app/dashboard/chamados/actions.ts
+
 export async function getTicketComments(ticketId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ticket_comments")
-    .select("*")
+    .select(
+      `
+      *,
+      profiles ( full_name )
+    `,
+    )
     .eq("ticket_id", ticketId)
     .order("created_at", { ascending: true });
 
-  if (error) return [];
+  if (error) {
+    console.error("Erro na busca dos comentários:", error.message);
+    return [];
+  }
+
   return data;
 }
 
-// Adiciona comentário com upload de evidência
+// Adiciona comentário com upload de evidência e REGISTRA QUEM FEZ
 export async function addTicketComment(ticketId: string, formData: FormData) {
   const supabase = await createClient();
+
+  // 1. Identifica o usuário logado
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const content = formData.get("content") as string;
   const file = formData.get("file") as File | null;
 
@@ -189,6 +207,7 @@ export async function addTicketComment(ticketId: string, formData: FormData) {
     file_name = file.name;
   }
 
+  // 2. Salva o comentário com o 'created_by'
   const { error } = await supabase.from("ticket_comments").insert([
     {
       ticket_id: ticketId,
@@ -196,6 +215,7 @@ export async function addTicketComment(ticketId: string, formData: FormData) {
       file_url,
       file_type,
       file_name,
+      created_by: user?.id, // <-- Vincula o perfil aqui
     },
   ]);
 
