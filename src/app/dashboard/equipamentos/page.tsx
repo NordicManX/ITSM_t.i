@@ -1,30 +1,42 @@
 // src/app/dashboard/equipamentos/page.tsx
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { getEquipments } from './actions'
+import { getEquipments, getSectors } from './actions'
 import { getCompanies } from '../empresas/actions'
 import { EquipmentForm } from './EquipmentForm'
-import { CompanyFilter } from './CompanyFilter'
-import { EquipmentCard } from './EquipmentCard' // <-- Importando o cartão inteligente
+import { EquipmentCard } from './EquipmentCard'
+import { SectorModal } from './SectorModal'
+import { EquipmentFilters } from './EquipmentFilters' // <-- Novo componente de filtros
 
 export default async function EquipamentosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ edit?: string, empresa?: string }>
+  searchParams: Promise<{ edit?: string, empresa?: string, setor?: string }> // <-- 'setor' adicionado aqui
 }) {
   const resolvedParams = await searchParams
   const editId = resolvedParams?.edit
   const filterCompanyId = resolvedParams?.empresa
+  const filterSectorId = resolvedParams?.setor // <-- Capturando da URL
 
-  const equipments = await getEquipments()
-  const companies = await getCompanies()
+  // Busca os dados simultaneamente
+  const [equipments, companies, sectors] = await Promise.all([
+    getEquipments(),
+    getCompanies(),
+    getSectors()
+  ])
 
   const equipmentToEdit = editId ? equipments.find(e => e.id === editId) : undefined
 
-  // Filtra os equipamentos com base na seleção da URL
-  const displayEquipments = filterCompanyId 
-    ? equipments.filter(e => e.company_id === filterCompanyId)
-    : equipments
+  // Lógica de Filtro Duplo (Empresa e Setor)
+  let displayEquipments = equipments
+
+  if (filterCompanyId) {
+    displayEquipments = displayEquipments.filter(e => e.company_id === filterCompanyId)
+  }
+  
+  if (filterSectorId) {
+    displayEquipments = displayEquipments.filter(e => e.sector_id === filterSectorId)
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 p-4 text-gray-100 md:p-8">
@@ -33,16 +45,28 @@ export default async function EquipamentosPage({
         <ArrowLeft className="h-4 w-4" /> Voltar para o Início
       </Link>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white md:text-3xl">Equipamentos</h1>
-        <p className="mt-2 text-sm text-gray-400">Gerencie o parque tecnológico de seus clientes.</p>
+      {/* Header com os botões de ação */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white md:text-3xl">Equipamentos</h1>
+          <p className="mt-2 text-sm text-gray-400">Gerencie o parque tecnológico de seus clientes.</p>
+        </div>
+        
+        {/* MODAL DE GERENCIAR SETORES */}
+        <div>
+          <SectorModal companies={companies} sectors={sectors} />
+        </div>
       </div>
 
       {/* Formulário de Criação/Edição */}
-      <EquipmentForm companies={companies} equipmentToEdit={equipmentToEdit} />
+      <EquipmentForm 
+        companies={companies} 
+        sectors={sectors} 
+        equipmentToEdit={equipmentToEdit} 
+      />
 
-      {/* Filtro por Empresa */}
-      <CompanyFilter companies={companies} />
+      {/* NOVO BLOCO DE FILTROS */}
+      <EquipmentFilters companies={companies} sectors={sectors} />
 
       {/* Lista de Equipamentos */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

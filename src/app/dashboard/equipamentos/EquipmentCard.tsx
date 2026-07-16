@@ -11,6 +11,9 @@ export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, 
   const [isDeleting, setIsDeleting] = useState(false)
   const [copied, setCopied] = useState(false)
 
+  // Tratativa para garantir que pegamos o nome do setor, não importa como o Supabase formatou o JSON de retorno
+  const sectorName = equipment.sector?.name || equipment.sectors?.name
+
   const handleDelete = async () => {
     setIsDeleting(true)
     await deleteEquipment(equipment.id)
@@ -35,21 +38,17 @@ export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, 
     if (!id) return
 
     if (type === 'ANYDESK') {
-      // Abre o AnyDesk passando o ID
       window.open(`anydesk://${id}`, '_self')
     } 
     else if (type === 'TEAMVIEWER') {
-      // Abre o TeamViewer
       window.open(`teamviewer10://control?device=${id}`, '_self')
     } 
     else if (type === 'RDP') {
-      // Gera um arquivo .rdp em tempo real e dispara o download
       const rdpContent = `full address:s:${id}\nprompt for credentials:i:1\n`
       const blob = new Blob([rdpContent], { type: 'application/x-rdp' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      // Nomeia o arquivo com o ID do equipamento para ficar organizado
       a.download = `Conexao_${equipment.identification_number}.rdp`
       document.body.appendChild(a)
       a.click()
@@ -57,7 +56,6 @@ export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, 
       URL.revokeObjectURL(url)
     } 
     else {
-      // Se for "OTHER" (Outro), apenas copia o ID pois não sabemos o programa
       handleCopyAccess()
       alert('O ID foi copiado. Abra seu software de VPN/Conexão manualmente.')
     }
@@ -67,7 +65,7 @@ export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, 
     <>
       <div className="flex flex-col justify-between rounded-lg border border-gray-800 bg-gray-900 p-5 shadow-sm transition-all hover:border-gray-700">
         <div>
-          <div className="mb-3 flex items-center gap-3">
+          <div className="mb-3 flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-800">
               {equipment.type === 'SERVER' ? (
                 <Server className="h-5 w-5 text-purple-400" />
@@ -75,8 +73,17 @@ export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, 
                 <Monitor className="h-5 w-5 text-blue-400" />
               )}
             </div>
-            <div>
-              <h3 className="font-bold text-white">{equipment.identification_number}</h3>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <h3 className="font-bold text-white text-lg leading-none">{equipment.identification_number}</h3>
+                
+                {/* A ETIQUETA DO SETOR BEM VISÍVEL AQUI */}
+                {sectorName && (
+                  <span className="rounded-full bg-indigo-900/40 border border-indigo-700/50 px-2.5 py-0.5 text-[10px] font-bold text-indigo-300 uppercase tracking-widest shadow-sm">
+                    {sectorName}
+                  </span>
+                )}
+              </div>
               <span className="text-xs font-medium text-gray-500">
                 {equipment.type === 'SERVER' ? 'Servidor' : 'Terminal'}
               </span>
@@ -143,7 +150,7 @@ export function EquipmentCard({ equipment, filterCompanyId }: { equipment: any, 
         </div>
       </div>
 
-      {/* Modal de Confirmação de Exclusão (Mantido igual) */}
+      {/* Modal de Confirmação de Exclusão */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md transform rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl transition-all">
