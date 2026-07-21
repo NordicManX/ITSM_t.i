@@ -15,7 +15,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "NordicDesk TI | Gestão e Suporte",
   description: "Sistema de Helpdesk e Gestão de Inventário Tecnológico da Nordic Tech.",
-  
 };
 
 export default function RootLayout({
@@ -27,8 +26,11 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }
