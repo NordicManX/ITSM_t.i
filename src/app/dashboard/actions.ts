@@ -35,4 +35,5 @@ export async function createCompany(formData: FormData) {
 
   // Atualiza o cache da página para mostrar o novo item instantaneamente
   revalidatePath("/dashboard/empresas");
+  redirect("/dashboard/anotacoes");
 }
