@@ -1,5 +1,17 @@
 // src/app/dashboard/layout.tsx
+import type { Metadata, Viewport } from "next"
 import { Sidebar } from '@/components/Sidebar'
+
+// Configurações do App (PWA)
+export const metadata: Metadata = {
+  title: "NordicDesk TI",
+  description: "Painel de Gestão de TI e Cofre de Anotações",
+}
+
+// Configuração da cor da janela/barra de status
+export const viewport: Viewport = {
+  themeColor: "#030712", // Tom escuro para combinar com o bg-gray-950
+}
 
 export default function DashboardLayout({
   children,
