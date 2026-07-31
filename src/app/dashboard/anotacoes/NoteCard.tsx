@@ -9,7 +9,7 @@ import { deleteNote, verifyUserPassword } from './actions'
 export function NoteCard({ note, editId }: { note: any, editId?: string }) {
   // Agora ele verifica se a palavra "SENHA" existe dentro do nome da categoria
   const isPasswordCategory = note.category?.toUpperCase().includes('SENHA')
-  
+
   const [isUnlocked, setIsUnlocked] = useState(!isPasswordCategory)
   const [isAskingPassword, setIsAskingPassword] = useState(false)
   const [password, setPassword] = useState('')
@@ -28,9 +28,9 @@ export function NoteCard({ note, editId }: { note: any, editId?: string }) {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
+
     const isValid = await verifyUserPassword(password)
-    
+
     if (isValid) {
       setIsUnlocked(true)
       setIsAskingPassword(false)
@@ -42,10 +42,9 @@ export function NoteCard({ note, editId }: { note: any, editId?: string }) {
   }
 
   return (
-    <div className={`relative flex flex-col rounded-lg border bg-gray-900 p-3 shadow-sm transition-all group ${
-      editId === note.id ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-gray-800 hover:border-gray-700'
-    }`}>
-      
+    <div className={`relative flex flex-col rounded-lg border bg-gray-900 p-3 shadow-sm transition-all group ${editId === note.id ? 'border-indigo-500 ring-1 ring-indigo-500/50' : 'border-gray-800 hover:border-gray-700'
+      }`}>
+
       {/* Ícone de Arrastar (Aparece no hover para o futuro Drag&Drop) */}
       <div className="absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab text-gray-600 opacity-0 transition-opacity hover:text-gray-400 group-hover:opacity-100">
         <GripVertical className="h-5 w-5" />
@@ -62,14 +61,14 @@ export function NoteCard({ note, editId }: { note: any, editId?: string }) {
 
         <div className="flex items-center gap-0.5">
           {isPasswordCategory && isUnlocked && (
-             <button onClick={() => setIsUnlocked(false)} title="Ocultar" className="rounded p-1 text-gray-500 hover:bg-gray-800 hover:text-gray-300">
-               <EyeOff className="h-3.5 w-3.5" />
-             </button>
+            <button onClick={() => setIsUnlocked(false)} title="Ocultar" className="rounded p-1 text-gray-500 hover:bg-gray-800 hover:text-gray-300">
+              <EyeOff className="h-3.5 w-3.5" />
+            </button>
           )}
           <Link href={`?edit=${note.id}`} className="rounded p-1 text-gray-500 hover:bg-indigo-900/30 hover:text-indigo-400">
             <Pencil className="h-3.5 w-3.5" />
           </Link>
-          <form action={deleteNote.bind(null, note.id)}>
+          <form action={async () => { await deleteNote(note.id); }}>
             <button type="submit" className="rounded p-1 text-gray-500 hover:bg-red-900/30 hover:text-red-400">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -96,8 +95,8 @@ export function NoteCard({ note, editId }: { note: any, editId?: string }) {
         ) : isAskingPassword ? (
           <form onSubmit={handleUnlock} className="flex flex-col gap-1.5">
             <div className="flex gap-1.5">
-              <input 
-                type="password" 
+              <input
+                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Senha..."
@@ -116,7 +115,7 @@ export function NoteCard({ note, editId }: { note: any, editId?: string }) {
               <Lock className="h-3 w-3" />
               <span className="text-xs font-mono tracking-widest">••••••••</span>
             </div>
-            <button 
+            <button
               onClick={() => setIsAskingPassword(true)}
               className="flex items-center gap-1.5 rounded bg-gray-800 px-2 py-1 text-[10px] font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
             >
@@ -126,7 +125,7 @@ export function NoteCard({ note, editId }: { note: any, editId?: string }) {
           </div>
         )}
       </div>
-      
+
       <div className="mt-2 flex items-center justify-between text-[10px] text-gray-500">
         <span>Por {note.profiles?.full_name?.split(' ')[0] || 'User'}</span>
         <span>{new Date(note.updated_at || note.created_at).toLocaleDateString('pt-BR')}</span>
