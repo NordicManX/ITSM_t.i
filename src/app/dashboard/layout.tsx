@@ -1,32 +1,33 @@
-// src/app/dashboard/layout.tsx
-import type { Metadata, Viewport } from "next"
-import { Sidebar } from '@/components/Sidebar'
+// src/app/layout.tsx
+import type { Metadata, Viewport } from "next";
+import "./globals.css"; // Exemplo do seu CSS global
 
-// Configurações do App (PWA)
+// 1. Configuração da cor da janela/barra para Android e Desktop
+export const viewport: Viewport = {
+  themeColor: "#030712",
+};
+
+// 2. Configurações gerais e a "parada" do iOS (appleWebApp)
 export const metadata: Metadata = {
   title: "NordicDesk TI",
   description: "Painel de Gestão de TI e Cofre de Anotações",
-}
+  appleWebApp: {
+    capable: true,
+    title: "NordicDesk",
+    statusBarStyle: "black-translucent",
+  },
+};
 
-// Configuração da cor da janela/barra de status
-export const viewport: Viewport = {
-  themeColor: "#030712", // Tom escuro para combinar com o bg-gray-950
-}
-
-export default function DashboardLayout({
+export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-gray-900 md:flex-row">
-      {/* A nossa barra lateral fixa (que agora vira header no mobile) */}
-      <Sidebar />
-      
-      {/* A área onde o conteúdo de cada página vai renderizar */}
-      <main className="flex-1 overflow-y-auto">
+    <html lang="pt-BR">
+      <body className="bg-gray-950 text-gray-50">
         {children}
-      </main>
-    </div>
-  )
+      </body>
+    </html>
+  );
 }
