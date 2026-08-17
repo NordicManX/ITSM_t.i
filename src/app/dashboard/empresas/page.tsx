@@ -1,6 +1,7 @@
 // src/app/dashboard/empresas/page.tsx
 import { getCompanies } from '@/app/dashboard/actions'
 import { CompanyForm } from './CompanyForm'
+import { BotaoWhatsApp } from '@/components/BotaoWhatsApp' // <-- Importando o botão!
 
 export default async function EmpresasPage() {
   const companies = await getCompanies()
@@ -29,12 +30,17 @@ export default async function EmpresasPage() {
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-400">
                 Data de Cadastro
               </th>
+              {/* NOVA COLUNA AQUI */}
+              <th scope="col" className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-400">
+                Portal do Cliente
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800 bg-gray-900">
             {companies.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
+                {/* Atualizado para colSpan 4 */}
+                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                   Nenhuma empresa cadastrada ainda.
                 </td>
               </tr>
@@ -49,6 +55,14 @@ export default async function EmpresasPage() {
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-gray-400">
                     {new Date(company.created_at).toLocaleDateString('pt-BR')}
+                  </td>
+                  {/* CÉLULA COM O BOTÃO DO WHATSAPP */}
+                  <td className="whitespace-nowrap px-6 py-4 text-right">
+                    <BotaoWhatsApp 
+                      empresaId={company.id} 
+                      nomeEmpresa={company.name} 
+                      telefoneContato={company.phone || company.telefone} 
+                    />
                   </td>
                 </tr>
               ))

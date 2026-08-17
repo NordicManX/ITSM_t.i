@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { logout } from '@/app/actions'
 import {
-  LayoutDashboard, Building2, Server, Ticket, LogOut, Menu, X, StickyNote
+  LayoutDashboard, Building2, Server, Ticket, LogOut, Menu, X, StickyNote, Layers
 } from 'lucide-react'
 
 export function Sidebar() {
@@ -99,6 +99,15 @@ export function Sidebar() {
           >
             <StickyNote className="h-5 w-5 text-blue-500" strokeWidth={2} />
             Anotações
+          </Link>
+
+          {/* NOVO LINK: Catálogo de Serviços (Categorias) */}
+          <Link
+            href="/dashboard/categorias"
+            className="flex items-center gap-3 rounded-md px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
+          >
+            <Layers className="h-5 w-5 text-blue-500" strokeWidth={2} />
+            Catálogo de Serviços
           </Link>
         </nav>
 
