@@ -3,11 +3,44 @@ import Link from 'next/link'
 import { getCompanies } from './empresas/actions'
 import { getEquipments } from './equipamentos/actions'
 import { getTickets } from './chamados/actions'
+import { createClient } from '@/utils/supabase/server'
 import { Building2, Monitor, AlertCircle, Clock, Activity, AlertTriangle } from 'lucide-react'
 
 export default async function DashboardPage() {
-  // A busca abaixo agora é "segura por padrão" graças ao RLS do Supabase.
-  // Se o usuário logado for CLIENT, ele só verá os dados da sua empresa.
+  const supabase = await createClient()
+  
+  // 1. Pega quem está logado
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let userName = 'Usuário'
+
+  if (user) {
+    // 2. Busca o full_name diretamente da tabela profiles
+    const { data: profile } = await supabase
+      .from('profiles') 
+      .select('full_name')
+      .eq('id', user.id)
+      .single()
+
+    // 3. Define o nome: usa o do banco se achar, senão tenta do Auth, senão corta o e-mail
+    userName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário'
+  }
+
+  // 4. Lógica de fuso horário do Brasil
+  const hourString = new Date().toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour: "numeric",
+  })
+  const currentHour = parseInt(hourString, 10)
+
+  let greeting = 'Boa noite'
+  if (currentHour >= 5 && currentHour < 12) {
+    greeting = 'Bom dia'
+  } else if (currentHour >= 12 && currentHour < 18) {
+    greeting = 'Boa tarde'
+  }
+
+  // 5. A busca abaixo agora é "segura por padrão" graças ao RLS do Supabase.
   const [companies, equipments, tickets] = await Promise.all([
     getCompanies(),
     getEquipments(),
@@ -23,9 +56,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 p-4 text-gray-100 md:p-8">
+      
+      {/* CABEÇALHO COM BOAS VINDAS PERSONALIZADAS */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white md:text-3xl">Visão Geral</h1>
-        <p className="mt-2 text-sm text-gray-400 md:text-base">Acompanhe as métricas e a situação do seu NordicDesk.</p>
+        <h1 className="text-2xl font-bold text-white md:text-3xl">
+          {greeting}, <span className="text-indigo-400">{userName}</span>!
+        </h1>
+        <p className="mt-2 text-sm text-gray-400 md:text-base">
+          Acompanhe as métricas e a situação do seu NordicDesk.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
