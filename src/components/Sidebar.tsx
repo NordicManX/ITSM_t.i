@@ -5,21 +5,97 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { logout } from '@/app/actions'
+import { createClient } from '@/utils/supabase/client'
+import toast from 'react-hot-toast'
 import {
-  LayoutDashboard, Building2, Server, Ticket, LogOut, Menu, X, StickyNote, Layers
+  LayoutDashboard, Building2, Server, Ticket, LogOut, Menu, X, StickyNote, Layers, Bell
 } from 'lucide-react'
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false)
+  const [loadingPush, setLoadingPush] = useState(false)
   const pathname = usePathname()
 
-  // EFEITO MÁGICO: Toda vez que a rota (URL) mudar, fecha o menu automaticamente
+  // EFEITO MÁGICO: Toda vez que a rota (URL) mudar, fecha o menu automaticamente no mobile
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
 
-  // Função manual para fechar o menu ao clicar no X ou no fundo escuro
   const closeSidebar = () => setIsOpen(false)
+
+  // Função para ativar as notificações Push direto do botão
+  async function ativarNotificacoesPush() {
+    setLoadingPush(true)
+    const supabase = createClient()
+
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        toast.error('Este navegador não suporta notificações em segundo plano.')
+        setLoadingPush(false)
+        return
+      }
+
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
+
+      const permission = await Notification.requestPermission()
+      
+      if (permission !== 'granted') {
+        toast.error('Permissão de notificação negada nas configurações do navegador.')
+        setLoadingPush(false)
+        return
+      }
+
+      let subscription = await registration.pushManager.getSubscription()
+      
+      if (!subscription) {
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        if (!vapidPublicKey) {
+          toast.error('Chave VAPID pública não configurada.')
+          setLoadingPush(false)
+          return
+        }
+
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        })
+      }
+
+      const subJson = subscription.toJSON()
+
+      const { error } = await supabase.from('push_subscriptions').upsert([
+        {
+          endpoint: subJson.endpoint,
+          p256dh: subJson.keys?.p256dh,
+          auth: subJson.keys?.auth,
+        }
+      ], { onConflict: 'endpoint' })
+
+      if (error) {
+        console.error('Erro ao salvar no Supabase:', error)
+        toast.error('Erro ao registrar aparelho no banco.')
+      } else {
+        toast.success('🔔 Notificações ativadas com sucesso neste aparelho!')
+      }
+    } catch (err) {
+      console.error('Erro ao ativar push:', err)
+      toast.error('Falha ao ativar notificações.')
+    } finally {
+      setLoadingPush(false)
+    }
+  }
 
   return (
     <>
@@ -34,7 +110,7 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Overlay escuro para mobile (Fecha o menu ao clicar fora dele) */}
+      {/* Overlay escuro para mobile */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm md:hidden"
@@ -42,7 +118,7 @@ export function Sidebar() {
         />
       )}
 
-      {/* Sidebar Principal (Off-canvas no mobile, fixa no desktop) */}
+      {/* Sidebar Principal */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-gray-800 bg-gray-950 transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
@@ -101,7 +177,6 @@ export function Sidebar() {
             Anotações
           </Link>
 
-          {/* NOVO LINK: Catálogo de Serviços (Categorias) */}
           <Link
             href="/dashboard/categorias"
             className="flex items-center gap-3 rounded-md px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
@@ -112,7 +187,17 @@ export function Sidebar() {
         </nav>
 
         {/* Rodapé da Sidebar */}
-        <div className="border-t border-gray-800 p-4">
+        <div className="space-y-2 border-t border-gray-800 p-4">
+          {/* Botão para ativar notificações explicitamente */}
+          <button
+            onClick={ativarNotificacoesPush}
+            disabled={loadingPush}
+            className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600/20 px-4 py-2 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-600/40 hover:text-blue-300 disabled:opacity-50"
+          >
+            <Bell className="h-5 w-5" strokeWidth={2} />
+            {loadingPush ? 'Ativando...' : 'Ativar Notificações'}
+          </button>
+
           <form action={logout}>
             <button
               type="submit"
