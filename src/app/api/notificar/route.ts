@@ -13,12 +13,29 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Se vier do Supabase Trigger/Webhook, os dados estão em 'record'
+    // Pega os dados do ticket enviado pelo gatilho do Supabase
     const ticket = body.record || body;
-    const titulo = ticket.title
-      ? `🚨 Novo Chamado: ${ticket.title}`
-      : "🚨 Novo Chamado Aberto!";
-    const corpo = ticket.description || "Acesse o painel para ver os detalhes.";
+    const servico = ticket.title || "Novo Chamado";
+    const companyId = ticket.company_id;
+    const descricao =
+      ticket.description || "Acesse o painel para ver os detalhes.";
+
+    // Busca o nome da empresa na tabela 'companies' usando o company_id do ticket
+    let nomeEmpresa = "Empresa";
+    if (companyId) {
+      const { data: empresa } = await supabase
+        .from("companies")
+        .select("name")
+        .eq("id", companyId)
+        .single();
+
+      if (empresa?.name) {
+        nomeEmpresa = empresa.name;
+      }
+    }
+
+    const titulo = `🚨 Chamado: ${servico}`;
+    const corpo = `Empresa: ${nomeEmpresa}\n${descricao}`;
 
     if (
       !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
