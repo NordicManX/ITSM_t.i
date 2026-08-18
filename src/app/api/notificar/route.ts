@@ -11,7 +11,15 @@ const supabase = createClient(
 
 export async function POST(request: Request) {
   try {
-    // 1. Verificamos se as chaves existem antes de configurar o webpush
+    // --- BLindAGEM DE SEGURANÇA (Valida o Token Secreto) ---
+    const authHeader = request.headers.get("authorization");
+    const secretToken = process.env.NOTIF_SECRET_TOKEN;
+
+    if (!secretToken || authHeader !== `Bearer ${secretToken}`) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+    // ------------------------------------------------------
+
     if (
       !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
       !process.env.VAPID_PRIVATE_KEY
@@ -20,7 +28,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Chaves ausentes" }, { status: 500 });
     }
 
-    // 2. Agora sim, configuramos o carteiro DENTRO da execução da rota
     webpush.setVapidDetails(
       "mailto:suporte@nordicdesk.com",
       process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
@@ -56,26 +63,19 @@ export async function POST(request: Request) {
         },
       };
 
-      // O Carteiro tenta entregar. Se der erro 410, ele apaga o endereço do banco!
       return webpush
         .sendNotification(pushSubscription, payload)
         .catch(async (err) => {
           if (err.statusCode === 410 || err.statusCode === 404) {
-            console.log(
-              "🗑️ Endereço expirado encontrado. Deletando do banco...",
-            );
             await supabase
               .from("push_subscriptions")
               .delete()
               .eq("endpoint", sub.endpoint);
-          } else {
-            console.error("Erro desconhecido no Web Push:", err);
           }
         });
     });
 
     await Promise.all(promessas);
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Erro na API de notificação:", error);

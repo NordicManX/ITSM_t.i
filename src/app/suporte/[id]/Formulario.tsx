@@ -37,14 +37,13 @@ export function FormularioCliente({
     // Monta um texto organizado para o corpo do chamado
     const corpoDoChamado = `Solicitante: ${nomeSolicitante}\n\nDetalhes: ${descricao || 'Nenhum detalhe adicional informado.'}`
 
-    // Removemos o 'client' e colocamos tudo no 'description'
     const { error } = await supabase.from('tickets').insert([
       {
         title: servico,
         status: 'OPEN', 
         priority: 'NORMAL',
         company_id: empresaId, 
-        description: corpoDoChamado // <--- Se a sua coluna se chamar 'descricao' em vez de 'description', é só mudar a palavra aqui!
+        description: corpoDoChamado
       }
     ])
 
@@ -58,7 +57,8 @@ export function FormularioCliente({
       fetch('/api/notificar', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json', // <-- ISSO É SUPER IMPORTANTE!
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_NOTIF_SECRET_TOKEN}`
         },
         body: JSON.stringify({
           titulo: '🚨 Novo Chamado Aberto!',
