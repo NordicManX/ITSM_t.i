@@ -52,6 +52,22 @@ export function FormularioCliente({
 
     if (!error) {
       setSucesso(true)
+      
+      console.log('✅ Chamado salvo no banco! Chamando o carteiro...')
+
+      fetch('/api/notificar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json', // <-- ISSO É SUPER IMPORTANTE!
+        },
+        body: JSON.stringify({
+          titulo: '🚨 Novo Chamado Aberto!',
+          corpo: `A empresa ${empresaNome} precisa de: ${servico}`
+        })
+      })
+      .then(res => console.log('📡 Resposta do carteiro:', res.status))
+      .catch(err => console.error('❌ Erro ao chamar o carteiro:', err))
+
     } else {
       alert("Ocorreu um erro ao enviar. Tente novamente.")
       console.error("ERRO DO SUPABASE:", error) 

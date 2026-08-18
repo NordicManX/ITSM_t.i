@@ -1,12 +1,16 @@
 // src/app/login/page.tsx
 import { login } from '@/app/login/actions';
-import Image from 'next/image'; // Importação do componente Image
+import Image from 'next/image'; 
 
-export default function LoginPage({
+// 1. Adicionamos o "async" e atualizamos a tipagem para Promise
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { error: string }
+  searchParams: Promise<{ error?: string }>
 }) {
+  // 2. Resolvemos a Promise dos parâmetros
+  const params = await searchParams;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-950 p-4">
       <div className="w-full max-w-md rounded-lg border border-gray-800 bg-gray-900 p-8 shadow-xl">
@@ -19,6 +23,7 @@ export default function LoginPage({
             width={80} 
             height={80} 
             className="mb-4 object-contain brightness-0 invert"
+            style={{ width: 'auto', height: 'auto' }} // <-- Isso tira aquele aviso chato da imagem no terminal!
           />
           <h1 className="text-3xl font-bold text-white">NordicDesk TI</h1>
           <p className="mt-2 text-sm text-gray-400">
@@ -55,9 +60,10 @@ export default function LoginPage({
             />
           </div>
 
-          {searchParams?.error && (
+          {/* 3. Trocamos searchParams.error por params.error */}
+          {params?.error && (
             <div className="rounded-md bg-red-900/50 p-3 text-sm text-red-400 border border-red-800">
-              {searchParams.error}
+              {params.error}
             </div>
           )}
 
