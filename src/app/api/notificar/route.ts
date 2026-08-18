@@ -11,14 +11,14 @@ const supabase = createClient(
 
 export async function POST(request: Request) {
   try {
-    // --- BLindAGEM DE SEGURANÇA (Valida o Token Secreto) ---
-    const authHeader = request.headers.get("authorization");
-    const secretToken = process.env.NOTIF_SECRET_TOKEN;
+    const body = await request.json();
 
-    if (!secretToken || authHeader !== `Bearer ${secretToken}`) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
-    // ------------------------------------------------------
+    // Se vier do Supabase Trigger/Webhook, os dados estão em 'record'
+    const ticket = body.record || body;
+    const titulo = ticket.title
+      ? `🚨 Novo Chamado: ${ticket.title}`
+      : "🚨 Novo Chamado Aberto!";
+    const corpo = ticket.description || "Acesse o painel para ver os detalhes.";
 
     if (
       !process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
@@ -33,9 +33,6 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
       process.env.VAPID_PRIVATE_KEY,
     );
-
-    const body = await request.json();
-    const { titulo, corpo } = body;
 
     const { data: inscricoes, error } = await supabase
       .from("push_subscriptions")

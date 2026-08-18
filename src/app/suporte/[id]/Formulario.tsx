@@ -34,7 +34,6 @@ export function FormularioCliente({
     const servico = formData.get('servico') as string
     const descricao = formData.get('descricao') as string
 
-    // Monta um texto organizado para o corpo do chamado
     const corpoDoChamado = `Solicitante: ${nomeSolicitante}\n\nDetalhes: ${descricao || 'Nenhum detalhe adicional informado.'}`
 
     const { error } = await supabase.from('tickets').insert([
@@ -51,30 +50,13 @@ export function FormularioCliente({
 
     if (!error) {
       setSucesso(true)
-      
-      console.log('✅ Chamado salvo no banco! Chamando o carteiro...')
-
-      fetch('/api/notificar', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_NOTIF_SECRET_TOKEN}`
-        },
-        body: JSON.stringify({
-          titulo: '🚨 Novo Chamado Aberto!',
-          corpo: `A empresa ${empresaNome} precisa de: ${servico}`
-        })
-      })
-      .then(res => console.log('📡 Resposta do carteiro:', res.status))
-      .catch(err => console.error('❌ Erro ao chamar o carteiro:', err))
-
+      console.log('✅ Chamado salvo no banco com sucesso!')
     } else {
       alert("Ocorreu um erro ao enviar. Tente novamente.")
       console.error("ERRO DO SUPABASE:", error) 
     }
   }
 
-  // Tela de Sucesso
   if (sucesso) {
     return (
       <div className="text-center py-8">
@@ -95,7 +77,6 @@ export function FormularioCliente({
     )
   }
 
-  // Formulário Padrão
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
