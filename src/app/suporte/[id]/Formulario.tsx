@@ -50,7 +50,7 @@ export function FormularioCliente({
 
     if (!error) {
       setSucesso(true)
-      console.log('✅ Chamado salvo no banco com sucesso!')
+      console.log('✅ Chamado salvo no banco! O Supabase cuidará da notificação.')
     } else {
       alert("Ocorreu um erro ao enviar. Tente novamente.")
       console.error("ERRO DO SUPABASE:", error) 
